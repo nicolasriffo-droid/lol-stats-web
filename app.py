@@ -1,15 +1,17 @@
-import streamlit as st
+import tkinter as tk
+from tkinter import messagebox
+from tkinter import simpledialog
 import math
 
 # ========================================================
 # CONSTANTES Y DATOS DE TUS COMANDOS ORIGINALES
 # ========================================================
 roles_descripcion = {
-    "TOP": "Te gustan los duelos y jugar independiente.\n\n**Campeones recomendados:** Darius, Sett, Garen",
-    "JUNGLA": "Te gusta controlar el mapa y ayudar líneas.\n\n**Campeones recomendados:** Lee Sin, Kayn, Viego",
-    "MID": "Te gusta hacer daño y carrear partidas.\n\n**Campeones recomendados:** Yasuo, Zed, Ahri",
-    "ADC": "Te gusta escalar y ser el carry principal.\n\n**Campeones recomendados:** Jinx, Kai'Sa, Vayne",
-    "SUPPORT": "Te gusta ayudar y proteger al equipo.\n\n**Campeones recomendados:** Thresh, Leona, Lulu"
+    "TOP": "Te gustan los duelos y jugar independiente.\nCampeones: Darius, Sett, Garen",
+    "JUNGLA": "Te gusta controlar el mapa y ayudar líneas.\nCampeones: Lee Sin, Kayn, Viego",
+    "MID": "Te gusta hacer daño y carrear partidas.\nCampeones: Yasuo, Zed, Ahri",
+    "ADC": "Te gusta escalar y ser el carry principal.\nCampeones: Jinx, Kai'Sa, Vayne",
+    "SUPPORT": "Te gusta ayudar y proteger al equipo.\nCampeones: Thresh, Leona, Lulu"
 }
 
 
@@ -71,65 +73,65 @@ def calcular_mi_rango(kills, deaths, assists, cs_min, vision_min, kp_pct, rol):
 
 
 # ========================================================
-# CONTROL DE SESIÓN WEB
+# CONFIGURACIÓN DE LA INTERFAZ
 # ========================================================
-if "logeado" not in st.session_state:
-    st.session_state.logeado = False
+ventana = tk.Tk()
+ventana.title("League of Legends Stats Panel")
+ventana.geometry("450x450")
 
-# --- PANTALLA 1: LOGIN WEB ---
-if not st.session_state.logeado:
-    st.title("🔒 League Stats Login")
-    st.write("Por favor, inicia sesión para acceder al panel.")
+frame_login = tk.Frame(ventana)
+frame_login.pack(pady=40)
 
-    usuario = st.text_input("Usuario")
-    contraseña = st.text_input("Contraseña", type="password")
+label_resultado = tk.Label(frame_login, text="Esperando login...", font=("Arial", 12))
+label_resultado.pack(pady=10)
 
-    if st.button("Iniciar sesión", use_container_width=True):
-        if usuario.strip() == "admin" and contraseña.strip() == "1234":
-            st.session_state.logeado = True
-            st.success("¡Login correcto!")
-            st.rerun()  # Recarga la página para mostrar el panel
-        else:
-            st.error("Usuario o contraseña incorrectos")
+tk.Label(frame_login, text="Usuario").pack()
+entry_user = tk.Entry(frame_login)
+entry_user.pack(pady=5)
 
-# --- PANTALLA 2: PANEL DE LEAGUE OF LEGENDS ---
-else:
-    st.title("🏆 PANEL DE ESTADÍSTICAS LOL 🏆")
-    st.write("¡Bienvenido al analizador táctico!")
+tk.Label(frame_login, text="Contraseña").pack()
+entry_pass = tk.Entry(frame_login, show="*")
+entry_pass.pack(pady=5)
 
-    if st.sidebar.button("Cerrar Sesión"):
-        st.session_state.logeado = False
-        st.rerun()
+# Variables globales para guardar los resultados del usuario
+res_linea = tk.StringVar(value="No calculado")
+res_rango = tk.StringVar(value="No calculado")
 
-    # Creamos pestañas para que la página web se vea organizada
-    pestana1, pestana2 = st.tabs(["🎯 Test de Línea", "📊 Calculador de Rango"])
 
-    # --- PESTAÑA 1: TEST DE LINEA ---
-    with pestana1:
-        st.header("Descubre tu rol ideal")
-        st.write("Responde estas preguntas del 1 (No me gusta nada) al 5 (Me encanta):")
+# LÓGICA DE EJECUCIÓN VISUAL DEL TEST DE ROL
+def ejecutar_test_linea():
+    preguntas = [
+        "¿Te gusta hacer mucho daño?",
+        "¿Te gusta ayudar a tu equipo?",
+        "¿Te gusta controlar objetivos?",
+        "¿Te gustan los duelos 1v1?",
+        "¿Te gusta carrear partidas?",
+        "¿Te gusta moverte por todo el mapa?",
+        "¿Te gusta iniciar peleas?",
+        "¿Te gusta proteger aliados?",
+        "¿Te gusta jugar agresivo?",
+        "¿Te gusta farmear tranquilo?",
+        "¿Te gusta tener mucho control del mapa?",
+        "¿Te frustras si dependes de otros?",
+        "¿Te gusta emboscar enemigos?",
+        "¿Te gusta jugar campeones difíciles?",
+        "¿Te gusta jugar peleas largas?",
+        "¿Te gusta burstear enemigos rápidamente?\n(Burstear: Hacer mucho daño masivo en muy poco tiempo)",
+        "¿Te gusta depender de posicionamiento?",
+        "¿Te gusta iniciar teamfights?\n(Teamfights: Peleas grupales de varios integrantes de ambos equipos)",
+        "¿Te gusta splitpushear?\n(Splitpushear: Presionar y destruir torretas solo en una línea alejada)",
+        "¿Te gusta controlar el ritmo de la partida?"
+    ]
 
-        preguntas = [
-            "¿Te gusta hacer mucho daño?", "¿Te gusta ayudar a tu equipo?", "¿Te gusta controlar objetivos?",
-            "¿Te gustan los duelos 1v1?", "¿Te gusta carrear partidas?", "¿Te gusta moverte por todo el mapa?",
-            "¿Te gusta iniciar peleas?", "¿Te gusta proteger aliados?", "¿Te gusta jugar agresivo?",
-            "¿Te gusta farmear tranquilo?", "¿Te gusta tener mucho control del mapa?",
-            "¿Te frustras si dependes de otros?",
-            "¿Te gusta emboscar enemigos?", "¿Te gusta jugar campeones difíciles?", "¿Te gusta jugar peleas largas?",
-            "¿Te gusta burstear enemigos rápidamente?", "¿Te gusta depender de posicionamiento?",
-            "¿Te gusta iniciar teamfights?", "¿Te gusta splitpushear?", "¿Te gusta controlar el ritmo de la partida?"
-        ]
+    roles = {"TOP": 0, "JUNGLA": 0, "MID": 0, "ADC": 0, "SUPPORT": 0}
+    messagebox.showinfo("Test de Rol", "A continuación se harán 20 preguntas rápidas. Responde de 1 a 5.")
 
-        respuestas = []
-        # En la web usamos Sliders (barras deslizantes), ¡se ve increíble!
-        for i, preg in enumerate(preguntas, 1):
-            resp = st.slider(f"{i}. {preg}", min_value=1, max_value=5, value=3, key=f"p_{i}")
-            respuestas.append(resp)
-
-        if st.button("Calcular mi Rol Táctico", type="primary"):
-            roles = {"TOP": 0, "JUNGLA": 0, "MID": 0, "ADC": 0, "SUPPORT": 0}
-
-            for i, resp in enumerate(respuestas, 1):
+    for i, preg in enumerate(preguntas, 1):
+        while True:
+            resp = simpledialog.askinteger(f"Pregunta {i}/20", f"{preg}\n(Responde del 1 al 5):", minvalue=1,
+                                           maxvalue=5)
+            if resp is not None:
+                # Mapeo de puntajes idéntico a tus comandos
                 if i in [1, 5, 14]: roles["MID"] += resp * 2; roles["ADC"] += resp * (2 if i != 14 else 1)
                 if i in [2, 8, 11, 18]: roles["SUPPORT"] += resp * (3 if i in [2, 8] else 2)
                 if i in [3, 6, 13, 20]: roles["JUNGLA"] += resp * 3
@@ -142,38 +144,88 @@ else:
                 if i == 12: roles["TOP"] += resp * 2; roles["MID"] += resp * 2
                 if i == 16: roles["MID"] += resp * 3
                 if i == 17: roles["ADC"] += resp * 3
+                break
+            else:
+                return  # Si cancela, sale del test
 
-            roles_ordenados = sorted(roles.items(), key=lambda x: x[1], reverse=True)
-            mejor_rol = roles_ordenados[0][0]
+    roles_ordenados = sorted(roles.items(), key=lambda x: x[1], reverse=True)
+    mejor_rol = roles_ordenados[0][0]
 
-            st.balloons()  # ¡Animación de globos por ganar!
-            st.success(f"### 🔥 Tu mejor rol es: **{mejor_rol}**")
-            st.info(roles_descripcion[mejor_rol])
+    res_linea.set(f"{mejor_rol}")
+    messagebox.showinfo("Resultado del Test", f"Tu rol ideal es: {mejor_rol}\n\n{roles_descripcion[mejor_rol]}")
 
-    # --- PESTAÑA 2: CALCULADOR DE RANGO ---
-    with pestana2:
-        st.header("Analizador de Rango por KDA y Macro")
-        st.write("Introduce los datos de tu última partida:")
 
-        col1, col2 = st.columns(2)
-        with col1:
-            minutos = st.number_input("Duración de partida (minutos)", min_value=1.0, value=30.0)
-            kills = st.number_input("Asesinatos (Kills)", min_value=0.0, value=5.0)
-            deaths = st.number_input("Muertes (Deaths)", min_value=0.0, value=4.0)
-            assists = st.number_input("Asistencias (Assists)", min_value=0.0, value=7.0)
-        with col2:
-            cs_total = st.number_input("Farming Total (CS)", min_value=0.0, value=180.0)
-            vision_total = st.number_input("Puntuación de Visión", min_value=0.0, value=25.0)
-            kills_totales_equipo = st.number_input("Kills Totales de tu Equipo", min_value=1.0, value=25.0)
-            rol = st.selectbox("Tu Rol en esa partida", ["Top", "Mid", "Jungla", "Adc", "Support"])
+# LÓGICA DE EJECUCIÓN VISUAL DEL CALCULADOR DE RANGO
+def ejecutar_calculador_rango():
+    try:
+        minutos = simpledialog.askfloat("Datos", "Minutos de duración de la partida:")
+        if not minutos: return
+        kills = simpledialog.askfloat("Datos", "Kills:")
+        deaths = simpledialog.askfloat("Datos", "Deaths:")
+        assists = simpledialog.askfloat("Datos", "Assists:")
+        cs_total = simpledialog.askfloat("Datos", "Farming (CS Total):")
+        vision_total = simpledialog.askfloat("Datos", "Puntuación de Visión Total:")
+        kills_totales_equipo = simpledialog.askfloat("Datos", "Asesinatos totales de TU equipo:")
+        rol = simpledialog.askstring("Datos", "Rol (top, mid, jungla, adc, support):").strip().lower()
 
-        if st.button("Estimar mi Rango", type="primary"):
-            cs_min = cs_total / minutos
-            vision_min = vision_total / minutos
-            kp_pct = ((kills + assists) / max(kills_totales_equipo, 1)) * 100
+        if rol not in ["top", "mid", "jungla", "adc", "support"]:
+            messagebox.showerror("Error", "Rol no válido.")
+            return
 
-            rango_final = calcular_mi_rango(kills, deaths, assists, cs_min, vision_min, kp_pct, rol)
+        cs_min = cs_total / minutos
+        vision_min = vision_total / minutos
+        kp_pct = ((kills + assists) / max(kills_totales_equipo, 1)) * 100
 
-            st.metric(label="🏆 Tu Rango Estimado es:", value=rango_final)
-            st.write(f"**Tus estadísticas por minuto:**")
-            st.write(f"• CS/Min: {cs_min:.1f} | Visión/Min: {vision_min:.2f} | Participación: {kp_pct:.1f}%")
+        resultado = calcular_mi_rango(kills, deaths, assists, cs_min, vision_min, kp_pct, rol)
+
+        res_rango.set(f"{resultado}")
+        messagebox.showinfo("Rango Estimado",
+                            f"Basado en tus estadísticas por minuto como {rol.upper()},\ntu rango aproximado es: {resultado}")
+    except Exception as e:
+        messagebox.showerror("Error", f"Ingresaste datos inválidos: {e}")
+
+
+# --- PANTALLA PRINCIPAL DE ESTADÍSTICAS LOL ---
+def mostrar_pantalla_lol():
+    frame_login.destroy()
+
+    frame_lol = tk.Frame(ventana)
+    frame_lol.pack(pady=20)
+
+    tk.Label(frame_lol, text="🏆 PANEL DE ESTADÍSTICAS LOL 🏆", font=("Arial", 14, "bold"), fg="purple").pack(pady=15)
+
+    # Textos que se actualizan de forma dinámica mediante las variables StringVar
+    tk.Label(frame_lol, text="Mejor Línea sugerida:", font=("Arial", 10)).pack()
+    tk.Label(frame_lol, textvariable=res_linea, font=("Arial", 12, "bold"), fg="blue").pack(pady=2)
+
+    tk.Label(frame_lol, text="Rango aproximado por KDA:", font=("Arial", 10)).pack()
+    tk.Label(frame_lol, textvariable=res_rango, font=("Arial", 12, "bold"), fg="darkgreen").pack(pady=2)
+
+    # Botones interactivos para llamar a los algoritmos que hiciste
+    tk.Button(frame_lol, text="🎯 Ejecutar Test de Línea", command=ejecutar_test_linea, width=25, bg="lightblue").pack(
+        pady=10)
+    tk.Button(frame_lol, text="📊 Calcular Rango (KDA/Stats)", command=ejecutar_calculador_rango, width=25,
+              bg="lightgreen").pack(pady=5)
+
+    ventana.update()
+
+
+def login():
+    usuario = entry_user.get().strip()
+    contraseña = entry_pass.get().strip()
+
+    if usuario == "admin" and contraseña == "1234":
+        label_resultado.config(text="LOGIN CORRECTO", fg="green")
+        ventana.update_idletasks()
+        messagebox.showinfo("Éxito", "¡Inicio de sesión correcto!")
+        mostrar_pantalla_lol()
+    else:
+        label_resultado.config(text="LOGIN INCORRECTO", fg="red")
+        ventana.update_idletasks()
+        messagebox.showerror("Error", "Usuario o contraseña incorrectos")
+
+
+boton = tk.Button(frame_login, text="Iniciar sesión", command=login)
+boton.pack(pady=15)
+
+ventana.mainloop()
